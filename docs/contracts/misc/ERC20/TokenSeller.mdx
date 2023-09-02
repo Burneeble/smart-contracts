@@ -1,0 +1,48 @@
+## Token Seller 💰👨🏻‍💼
+
+Token Seller is a solidity contract that allows you to buy tokens starting from Ethereum. This contract can be used to transfer tokens before their official launch. It is a custom swap and transfer that interacts with the standard ERC20 contract: in fact, ERC20 Tokens must exist in order to carry out a swap and transfer.
+
+<Callout>
+  ERC20 is a standard designed to create tokens, see the contracts/token/erc20
+  section to find out more
+</Callout>
+
+## Analyzing Contract 🕵🏻🔍
+
+###Interface IERC20 👤
+Before creating the actual TokenSeller contract, we create an ERC20 contract interface so that we can use the functions that interest us if necessary. In this example we are exporting the following functions, transfer(), transferFrom() and balanceOf().
+The code has been commented to make it easier for you to understand!🔥
+
+```
+/**
+ * @dev IERC20 interface with transfer(), transferFrom(), balanceOf() functions
+ */
+interface IERC20 {
+    /**
+     * @notice transfer token amount to address
+     * @param to address to transfer token to
+     * @param value token amount to transfer to
+     */
+    function transfer(address to, uint256 value) external returns (bool);
+
+    /**
+     * @notice transfer token amount from a sender to a reciever
+     * @param from address to transfer from
+     * @param to address to transfer token to
+     * @param value token amount to transfer to
+     */
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) external returns (bool);
+
+    /**
+     * @notice transfer token amount to address
+     * @param account account address to get balance of
+     */
+    function balanceOf(address account) external view returns (uint256);
+}
+```
+
+###
