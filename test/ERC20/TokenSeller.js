@@ -91,7 +91,7 @@ describe("Token Seller", function () {
       });
     });
     describe("withdrawBalance function test", function () {
-      it("Should withdraw token", async function () {
+      it("Should withdraw balance", async function () {
         const {
           tokenSellerContract,
           ERC20Contract,
@@ -137,8 +137,47 @@ describe("Token Seller", function () {
           ethers.formatEther(balanceBeforeWithdraw + contractBalance)
         );
 
-        // Verify that the owner's balance after the withdrawal is close to the expected value, with a tolerance of 0.001
-        expect(etherBalance).to.closeTo(expectedEtherBalance, 0.0001);
+        // Verify that the owner's balance after the withdrawal is close to (and below) the expected value, with a tolerance of 0.001
+        expect(etherBalance)
+          .to.closeTo(expectedEtherBalance, 0.0001)
+          .below(expectedEtherBalance);
+      });
+    });
+
+    describe("withdrawToken function test", function () {
+      it("Should withdraw token", async function () {
+        const {
+          tokenSellerContract,
+          ERC20Contract,
+          tokenSellerAddress,
+          ERC20Address,
+          addr1,
+          owner,
+        } = await loadFixture(deployTokenFixture);
+
+        await ERC20Contract.approve(tokenSellerAddress, 50);
+        // Deposit 50 tokens into the seller's contract
+        await tokenSellerContract.depositERC20Token(50);
+
+        await tokenSellerContract
+          .connect(addr1)
+          .buyToken(40, { value: await ethers.parseEther("0.04") });
+        const ownerBalanceBefore = await ERC20Contract.balanceOf(owner.address);
+
+        const contractBalanceBefore = await ERC20Contract.balanceOf(
+          tokenSellerAddress
+        );
+        await tokenSellerContract.withdrawToken(ERC20Address);
+
+        const ownerBalanceAfter = await ERC20Contract.balanceOf(owner.address);
+        console.log(
+          ownerBalanceAfter,
+          ownerBalanceBefore + contractBalanceBefore
+        );
+
+        expect(ownerBalanceAfter).to.equal(
+          ownerBalanceBefore + contractBalanceBefore
+        );
       });
     });
   });
