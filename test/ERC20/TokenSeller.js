@@ -155,26 +155,33 @@ describe("Token Seller", function () {
           owner,
         } = await loadFixture(deployTokenFixture);
 
+        // Approve the transfer of 50 tokens to the seller's contract
         await ERC20Contract.approve(tokenSellerAddress, 50);
+
         // Deposit 50 tokens into the seller's contract
         await tokenSellerContract.depositERC20Token(50);
 
+        // Buy 40 tokens from the seller's contract with 0.04 ether
         await tokenSellerContract
           .connect(addr1)
           .buyToken(40, { value: await ethers.parseEther("0.04") });
+
+        // Get the owner's ERC20 token balance before the withdrawal
         const ownerBalanceBefore = await ERC20Contract.balanceOf(owner.address);
 
+        // Get the contract's ERC20 token balance before the withdrawal
         const contractBalanceBefore = await ERC20Contract.balanceOf(
           tokenSellerAddress
         );
+
+        // Execute the withdrawal of ERC20 tokens from the contract
         await tokenSellerContract.withdrawToken(ERC20Address);
 
+        // Get the owner's ERC20 token balance after the withdrawal
         const ownerBalanceAfter = await ERC20Contract.balanceOf(owner.address);
-        console.log(
-          ownerBalanceAfter,
-          ownerBalanceBefore + contractBalanceBefore
-        );
 
+        // Ensure that the owner's ERC20 token balance after withdrawal
+        // is equal to the sum of their previous balance and the contract's balance
         expect(ownerBalanceAfter).to.equal(
           ownerBalanceBefore + contractBalanceBefore
         );
