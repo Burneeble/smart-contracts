@@ -85,9 +85,26 @@ describe("Token Seller", function () {
         //{value: 123} is the value of wei your paying to call a payable function
         await tokenSellerContract
           .connect(addr1)
-          .buyToken(20, { value: await ethers.parseEther("0.02") });
+          .buyToken(20, { value: ethers.parseEther("0.02") });
 
         expect(await ERC20Contract.balanceOf(addr1.address)).to.equal(20);
+      });
+      it("Should not buy with no funds", async function () {
+        const {
+          ERC20Contract,
+          tokenSellerContract,
+          addr1,
+          tokenSellerAddress,
+        } = await loadFixture(deployTokenFixture);
+
+        await ERC20Contract.approve(tokenSellerAddress, 50);
+        await tokenSellerContract.depositERC20Token(50);
+
+        await expectThrowsAsync(() =>
+          tokenSellerContract
+            .connect(addr1)
+            .buyToken(20, { value: ethers.parseEther("0") })
+        );
       });
     });
     describe("withdrawBalance function test", function () {
@@ -170,10 +187,6 @@ describe("Token Seller", function () {
         await tokenSellerContract.withdrawToken(ERC20Address);
 
         const ownerBalanceAfter = await ERC20Contract.balanceOf(owner.address);
-        console.log(
-          ownerBalanceAfter,
-          ownerBalanceBefore + contractBalanceBefore
-        );
 
         expect(ownerBalanceAfter).to.equal(
           ownerBalanceBefore + contractBalanceBefore
