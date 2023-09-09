@@ -1,19 +1,39 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
+require("hardhat-tracer");
 
 const config: HardhatUserConfig = {
   solidity: "0.8.19",
 };
 
-
 module.exports = {
-  solidity: "0.8.19",
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.19",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      {
+        version: "0.8.0",
+        settings: {},
+      },
+    ],
+  },
   networks: {
-    sepolia: {
-      url: `https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
-      accounts: [process.env.WALLET_PRIVATE_KEY]
-    }
-  }
+    testnet: {
+      url: process.env.TESTNET_URL,
+      accounts: [process.env.TESTNET_ACCOUNT],
+    },
+    mainnet: {
+      url: process.env.MAINNET_URL,
+      accounts: [process.env.MAINNET_ACCOUNT],
+    },
+  },
 };
