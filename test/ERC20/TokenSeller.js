@@ -33,11 +33,8 @@ describe("Token Seller", function () {
 
     //TokenSeller contract deploy
     const tokenSeller = await ethers.getContractFactory("TokenSeller");
-    const tokenSellerContract = await tokenSeller.deploy(ERC20Address);
+    const tokenSellerContract = await tokenSeller.deploy(ERC20Address, ethers.parseEther("0.001"));
     const tokenSellerAddress = await tokenSellerContract.getAddress();
-
-    //the price is 0 by default so here I set it to a proper value
-    await tokenSellerContract.setTokenPrice(await ethers.parseEther("0.001"));
 
     // Fixtures can return anything you consider useful for your tests
     return {
