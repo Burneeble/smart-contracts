@@ -11,8 +11,7 @@ pragma solidity ^0.8.14;
 // - `tokenPrice`: The price of each token in Ether.
 // - `walletAddress`: The address where the purchased Ether will be sent.
 // - `tokenAddress`: The address of the ERC20 token being sold.
-// - `allowance`: Unused in current implementation, but intended for
-//    tracking the amount of tokens the contract is allowed to sell.
+// - `tokenSupply`: The amount of token the contract currently has.
 // =============================================
 
 /**
@@ -68,11 +67,10 @@ interface IERC20 {
 }
 
 contract TokenSeller is Ownable {
-    //TODO put the tokenPrice in the constructor or change the default value
-    uint256 public tokenPrice = 0;
+    uint256 public tokenPrice;
     address public walletAddress = address(0);
     address public tokenAddress = address(0);
-    uint256 public allowance = 0;
+    uint256 public tokenSupply = 0;
 
     event ReceivedERC20Token(
         address token_address,
@@ -80,9 +78,10 @@ contract TokenSeller is Ownable {
         uint256 value
     );
 
-    constructor(address _tokenAddress) {
+    constructor(address _tokenAddress, uint256 _tokenPrice) {
         walletAddress = _msgSender();
         tokenAddress = _tokenAddress;
+        tokenPrice = _tokenPrice;
     }
 
     function setTokenPrice(uint256 _tokenPrice) public onlyOwner {
@@ -97,8 +96,13 @@ contract TokenSeller is Ownable {
         walletAddress = _walletAddress;
     }
 
+    /**
+     * @dev Deposit a specified amount of ERC20 tokens into the smart contract, only the owner of the contract can call this function.
+     * @notice This function increases the total token supply.
+     * @param amount The amount of ERC20 tokens to deposit.
+     */
     function depositERC20Token(uint256 amount) external onlyOwner {
-        allowance += amount;
+        tokenSupply += amount;
         require(
             IERC20(tokenAddress).transferFrom(
                 walletAddress,
@@ -108,8 +112,17 @@ contract TokenSeller is Ownable {
         );
     }
 
+    /**
+     *  @dev The value of the token amount must be entered taking into account the WEI unit, and will be converted by the function into normal values
+     *  @notice Buy a quantity of tokens
+     *  @param _tokenAmount is the value of the token amount (using WEI) you want to buy
+     */
     function buyToken(uint256 _tokenAmount) public payable {
-        require(msg.value >= _tokenAmount * tokenPrice, "Insufficient funds");
+        tokenSupply -= _tokenAmount;
+        require(
+            msg.value >= (_tokenAmount / (10 ** 18)) * tokenPrice,
+            "Insufficient funds"
+        );
         require(
             IERC20(tokenAddress).transfer(msg.sender, _tokenAmount),
             "Failed to send token"
@@ -121,13 +134,13 @@ contract TokenSeller is Ownable {
      */
     function withdrawBalance() public onlyOwner {
         (bool success, ) = payable(owner()).call{value: address(this).balance}(
-            ""
+            "Balance Withdraw Failed"
         );
         require(success);
     }
 
     /**
-     *  @notice Withdraws contract Token balance to onwer account
+     *  @notice Withdraws contract Token balance to onwer account.
      */
     function withdrawToken(address _tokenAddress) public onlyOwner {
         uint256 contractBalance = IERC20(_tokenAddress).balanceOf(
@@ -136,7 +149,7 @@ contract TokenSeller is Ownable {
 
         require(
             IERC20(_tokenAddress).transfer(msg.sender, contractBalance),
-            "Withdraw Failed"
+            "Token Withdraw Failed"
         );
     }
 }

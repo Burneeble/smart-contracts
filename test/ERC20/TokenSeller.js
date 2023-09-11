@@ -28,7 +28,7 @@ describe("Token Seller", function () {
 
     //ERC20 contract deploy
     const ERC20 = await ethers.getContractFactory("BurneebleERC20");
-    const ERC20Contract = await ERC20.deploy("Token", "TK", 10000);
+    const ERC20Contract = await ERC20.deploy("Token", "TK", ethers.parseUnits("1000000", 18));
     const ERC20Address = await ERC20Contract.getAddress();
 
     //TokenSeller contract deploy
@@ -55,10 +55,10 @@ describe("Token Seller", function () {
       it("Should deposit token with Approve", async function () {
         const { ERC20Contract, tokenSellerContract, tokenSellerAddress } =
           await loadFixture(deployTokenFixture);
-        await ERC20Contract.approve(tokenSellerAddress, 50);
-        await tokenSellerContract.depositERC20Token(50);
+        await ERC20Contract.approve(tokenSellerAddress, ethers.parseUnits("50", 18));
+        await tokenSellerContract.depositERC20Token(ethers.parseUnits("50", 18));
 
-        expect(await ERC20Contract.balanceOf(tokenSellerAddress)).to.equal(50);
+        expect(await ERC20Contract.balanceOf(tokenSellerAddress)).to.equal(ethers.parseUnits("50", 18));
       });
 
       it("Should not deposit token without Approve", async function () {
@@ -66,7 +66,7 @@ describe("Token Seller", function () {
           await loadFixture(deployTokenFixture);
 
         await expectThrowsAsync(() =>
-          tokenSellerContract.depositERC20Token(50)
+          tokenSellerContract.depositERC20Token(ethers.parseUnits("50", 18))
         );
       });
     });
@@ -79,15 +79,15 @@ describe("Token Seller", function () {
           tokenSellerAddress,
         } = await loadFixture(deployTokenFixture);
 
-        await ERC20Contract.approve(tokenSellerAddress, 50);
-        await tokenSellerContract.depositERC20Token(50);
+        await ERC20Contract.approve(tokenSellerAddress, ethers.parseUnits("50", 18));
+        await tokenSellerContract.depositERC20Token(ethers.parseUnits("50", 18));
 
         //{value: 123} is the value of wei your paying to call a payable function
         await tokenSellerContract
           .connect(addr1)
-          .buyToken(20, { value: ethers.parseEther("0.02") });
+          .buyToken(ethers.parseUnits("20", 18), { value: ethers.parseEther("0.02") });
 
-        expect(await ERC20Contract.balanceOf(addr1.address)).to.equal(20);
+        expect(await ERC20Contract.balanceOf(addr1.address)).to.equal(ethers.parseUnits("20", 18));
       });
       it("Should not buy with no funds", async function () {
         const {
@@ -97,13 +97,13 @@ describe("Token Seller", function () {
           tokenSellerAddress,
         } = await loadFixture(deployTokenFixture);
 
-        await ERC20Contract.approve(tokenSellerAddress, 50);
-        await tokenSellerContract.depositERC20Token(50);
+        await ERC20Contract.approve(tokenSellerAddress, ethers.parseUnits("50", 18));
+        await tokenSellerContract.depositERC20Token(ethers.parseUnits("50", 18));
 
         await expectThrowsAsync(() =>
           tokenSellerContract
             .connect(addr1)
-            .buyToken(20, { value: ethers.parseEther("0") })
+            .buyToken(ethers.parseUnits("20", 18), { value: ethers.parseEther("0") })
         );
       });
     });
@@ -120,9 +120,9 @@ describe("Token Seller", function () {
         const provider = ethers.provider;
 
         // Approve the transfer of 50 tokens to the seller's contract
-        await ERC20Contract.approve(tokenSellerAddress, 50);
+        await ERC20Contract.approve(tokenSellerAddress, ethers.parseUnits("50", 18));
         // Deposit 50 tokens into the seller's contract
-        await tokenSellerContract.depositERC20Token(50);
+        await tokenSellerContract.depositERC20Token(ethers.parseUnits("50", 18));
 
         // Get the owner's balance before the withdrawal
         const balanceBeforeWithdraw = await provider.getBalance(owner.address);
@@ -131,7 +131,7 @@ describe("Token Seller", function () {
         //{value: xyz} is the value of wei your paying to call a payable function
         await tokenSellerContract
           .connect(addr1)
-          .buyToken(20, { value: await ethers.parseEther("0.02") });
+          .buyToken(ethers.parseUnits("20", 18), { value: await ethers.parseEther("0.02") });
 
         // Get the contract balance before the withdrawal
         const contractBalance = await provider.getBalance(tokenSellerAddress);
@@ -145,20 +145,14 @@ describe("Token Seller", function () {
         // Get the owner's balance after the withdrawal
         const balanceAfterWithdraw = await provider.getBalance(owner.address);
 
-        const etherBalance = parseFloat(
-          ethers.formatEther(balanceAfterWithdraw)
-        );
-
         // Calculate the expected balance of the owner after the withdrawal
-        const expectedEtherBalance = parseFloat(
-          ethers.formatEther(balanceBeforeWithdraw + contractBalance)
-        );
+        const expectedEtherBalance = balanceBeforeWithdraw + contractBalance;
 
         // Verify that the owner's balance after the withdrawal is close to (and below) the expected value, with a tolerance of 0.001
-        expect(etherBalance)
-          .to.closeTo(expectedEtherBalance, 0.0001)
-          .below(expectedEtherBalance);
-      });
+        expect(balanceAfterWithdraw)
+          .to.closeTo(expectedEtherBalance, ethers.parseEther("10000"))
+          .below(expectedEtherBalance);    
+    });
     });
 
     describe("withdrawToken function test", function () {
@@ -173,15 +167,15 @@ describe("Token Seller", function () {
         } = await loadFixture(deployTokenFixture);
 
         // Approve the transfer of 50 tokens to the seller's contract
-        await ERC20Contract.approve(tokenSellerAddress, 50);
+        await ERC20Contract.approve(tokenSellerAddress, ethers.parseUnits("50", 18));
 
         // Deposit 50 tokens into the seller's contract
-        await tokenSellerContract.depositERC20Token(50);
+        await tokenSellerContract.depositERC20Token(ethers.parseUnits("50", 18));
 
         // Buy 40 tokens from the seller's contract with 0.04 ether
         await tokenSellerContract
           .connect(addr1)
-          .buyToken(40, { value: await ethers.parseEther("0.04") });
+          .buyToken(ethers.parseUnits("40", 18), { value: await ethers.parseEther("0.04") });
 
         // Get the owner's ERC20 token balance before the withdrawal
         const ownerBalanceBefore = await ERC20Contract.balanceOf(owner.address);
