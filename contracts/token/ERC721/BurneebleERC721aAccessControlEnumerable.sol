@@ -69,6 +69,12 @@ interface IBurneebleERC721A is IERC721A {
         external
         view
         returns (uint256[] memory);
+
+    function grantAdminRole(address account) external;
+
+    function revokeAdminRole(address account) external;
+    
+    function changeOwner(address newOwner) external;
 }
 
 
@@ -94,6 +100,8 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
     uint256 public maxMintAmountPerAddress = 20;
     mapping(address => uint256) public totalMintedByAddress;
 
+    address public contractOwner;
+
     /**
      *  @notice BurneebleERC721 constructor
      *  @param _tokenName Token name
@@ -108,7 +116,8 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
         mintPrice = _mintPrice;
         maxSupply = _maxSupply;
          
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        contractOwner = msg.sender;
     }
 
     /**
@@ -141,11 +150,57 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
         _;
     }
 
+    modifier requireOwner(address _account) {
+    require(hasRole(DEFAULT_ADMIN_ROLE, _account), "Unauthorized");
+    _;
+    }
+
+    modifier requireAdmin(address _account) {
+    require(hasRole(ADMIN_ROLE, _account), "Unauthorized");
+    _;
+    }
+
+    /**
+    * @dev Grants the admin role to a specific user.
+    * Can only be called by users with the DEFAULT_ADMIN_ROLE (the owner).
+    * @param account The address of the user to grant the admin role to.
+    */
+    function grantAdminRole(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(ADMIN_ROLE, account);
+    }
+
+    /**
+    * @dev Revokes the admin role from a specific user.
+    * Can only be called by users with the DEFAULT_ADMIN_ROLE (the owner).
+    * @param account The address of the user from whom to revoke the admin role.
+    */
+    function revokeAdminRole(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        revokeRole(ADMIN_ROLE, account);
+    }
+
+    /**
+    * @notice Changes the owner of the contract and assigns the DEFAULT_ADMIN_ROLE to the new owner.
+    * Can only be called by the current owner.
+    * @param newOwner The address of the new owner.
+    */
+    function changeOwner(address newOwner) public requireOwner(msg.sender) {
+        require(newOwner != address(0), "Invalid new owner address");
+
+        // Assign DEFAULT_ADMIN_ROLE to the new owner
+        grantRole(DEFAULT_ADMIN_ROLE, newOwner);
+
+        // Remove DEFAULT_ADMIN_ROLE from the current owner
+        revokeRole(DEFAULT_ADMIN_ROLE, contractOwner);
+
+        // Update the contract's owner
+        contractOwner = newOwner;
+    }
+
     /**
      *  @notice Sets new base URI
      *  @param _baseUri New base URI to be set
      */
-    function setBaseUri(string memory _baseUri) public onlyRole(ADMIN_ROLE) {
+    function setBaseUri(string memory _baseUri) public requireAdmin(msg.sender) {
         baseUri = _baseUri;
     }
 
@@ -153,7 +208,7 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
      *  @notice Sets new URI suffix
      *  @param _uriSuffix New URI suffix to be set
      */
-    function setUriSuffix(string memory _uriSuffix) public onlyRole(ADMIN_ROLE) {
+    function setUriSuffix(string memory _uriSuffix) public requireAdmin(msg.sender) {
         uriSuffix = _uriSuffix;
     }
 
@@ -161,7 +216,7 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
      *  @notice Reveals (or unreveals) the collection
      *  @param _revealed New revealed value to be set. True if revealed, false otherwise
      */
-    function setRevealed(bool _revealed) public onlyRole(ADMIN_ROLE) {
+    function setRevealed(bool _revealed) public requireAdmin(msg.sender) {
         revealed = _revealed;
     }
 
@@ -169,7 +224,7 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
      * @notice Change paused state
      * @param _paused Paused state
      */
-    function setPaused(bool _paused) public onlyRole(ADMIN_ROLE) {
+    function setPaused(bool _paused) public requireAdmin(msg.sender) {
         paused = _paused;
     }
 
@@ -177,7 +232,7 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
      *  @notice Sets new pre-reveal URI
      *  @param _preRevealUri New pre-reveal URI to be used
      */
-    function setPreRevealUri(string memory _preRevealUri) public onlyRole(ADMIN_ROLE) {
+    function setPreRevealUri(string memory _preRevealUri) public requireAdmin(msg.sender) {
         preRevealUri = _preRevealUri;
     }
 
@@ -185,7 +240,7 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
      *  @notice Allows owner to set a new mint price
      *  @param _mintPrice New mint price to be set
      */
-    function setMintPrice(uint256 _mintPrice) public onlyRole(ADMIN_ROLE) {
+    function setMintPrice(uint256 _mintPrice) public requireAdmin(msg.sender) {
         mintPrice = _mintPrice;
     }
 
@@ -193,7 +248,7 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
      *  @notice Allows owner to set the max number of mintable items in a single transaction
      *  @param _maxAmount Max amount
      */
-    function setMaxMintAmountPerTrx(uint256 _maxAmount) public onlyRole(ADMIN_ROLE) {
+    function setMaxMintAmountPerTrx(uint256 _maxAmount) public requireAdmin(msg.sender) {
         maxMintAmountPerTrx = _maxAmount;
     }
 
@@ -201,15 +256,15 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
      *  @notice Allows owner to set the max number of items mintable per wallet
      *  @param _maxAmount Max amount
      */
-    function setMaxMintAmountPerAddress(uint256 _maxAmount) public onlyRole(ADMIN_ROLE) {
+    function setMaxMintAmountPerAddress(uint256 _maxAmount) public requireAdmin(msg.sender) {
         maxMintAmountPerAddress = _maxAmount;
     }
 
     /**
      *  @notice Withdraws contract balance to onwer account
      */
-    function withdrawBalance() public virtual onlyRole(ADMIN_ROLE) {
-        (bool success, ) = payable(owner()).call{value: address(this).balance}(
+    function withdrawBalance() public virtual requireAdmin(msg.sender) {
+        (bool success, ) = payable(contractOwner).call{value: address(this).balance}(
             ""
         );
         require(success);
@@ -294,7 +349,7 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
     function ownerMintForAddress(uint256 _mintAmount, address _receiver)
         public
         virtual
-        onlyRole(ADMIN_ROLE)
+        requireAdmin(msg.sender)
     {
         require(totalSupply() + _mintAmount <= maxSupply, "Max supply exceed!");
         _safeMint(_receiver, _mintAmount);
@@ -336,7 +391,7 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
         public
         view
         virtual
-        override
+        override(ERC721A, AccessControl)
         returns (bool)
     {
         return
