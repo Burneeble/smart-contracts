@@ -58,22 +58,10 @@ interface IBurneebleERC721A is IERC721A {
 
     function mint(uint256 _mintAmount) external payable;
 
-    function mintForAddress(address receiver, uint256 _mintAmount)
-        external
-        payable;
-
-    function ownerMintForAddress(uint256 _mintAmount, address _receiver)
-        external;
-
-    function walletOfOwner(address _owner)
-        external
-        view
-        returns (uint256[] memory);
-
     function grantAdminRole(address account) external;
 
     function revokeAdminRole(address account) external;
-    
+
     function changeOwner(address newOwner) external;
 }
 
@@ -263,7 +251,7 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
     /**
      *  @notice Withdraws contract balance to onwer account
      */
-    function withdrawBalance() public virtual requireAdmin(msg.sender) {
+    function withdrawBalance() public virtual requireOwner(msg.sender) {
         (bool success, ) = payable(contractOwner).call{value: address(this).balance}(
             ""
         );
@@ -317,74 +305,6 @@ contract BurneebleERC721A is ERC721A, AccessControl, ReentrancyGuard {
     {
         _safeMint(_msgSender(), _mintAmount);
         totalMintedByAddress[_msgSender()] += _mintAmount;
-    }
-
-    function mintForAddress(address receiver, uint256 _mintAmount)
-        public
-        payable
-        virtual
-        enoughFunds(_mintAmount)
-        active
-    {
-        require(
-            _mintAmount <= maxMintAmountPerTrx,
-            "Exceeded maximum total amount per trx!"
-        );
-        require(
-            totalMintedByAddress[receiver] + _mintAmount <=
-                maxMintAmountPerAddress,
-            "Exceeded maximum total amount!"
-        );
-
-        for (uint256 i = 0; i < _mintAmount; i++) {
-            totalMintedByAddress[receiver]++;
-        }
-
-        _safeMint(receiver, _mintAmount);
-    }
-
-    /**
-     * @notice Mints item for another address. (Reserved to contract owner)
-     */
-    function ownerMintForAddress(uint256 _mintAmount, address _receiver)
-        public
-        virtual
-        requireAdmin(msg.sender)
-    {
-        require(totalSupply() + _mintAmount <= maxSupply, "Max supply exceed!");
-        _safeMint(_receiver, _mintAmount);
-    }
-
-    function walletOfOwner(address _owner)
-        public
-        view
-        returns (uint256[] memory)
-    {
-        uint256 ownerTokenCount = balanceOf(_owner);
-        uint256[] memory ownedTokenIds = new uint256[](ownerTokenCount);
-        uint256 currentTokenId = _startTokenId();
-        uint256 ownedTokenIndex = 0;
-        address latestOwnerAddress;
-
-        while (
-            ownedTokenIndex < ownerTokenCount && currentTokenId <= maxSupply
-        ) {
-            TokenOwnership memory ownership = _ownershipOf(currentTokenId);
-
-            if (!ownership.burned && ownership.addr != address(0)) {
-                latestOwnerAddress = ownership.addr;
-            }
-
-            if (latestOwnerAddress == _owner) {
-                ownedTokenIds[ownedTokenIndex] = currentTokenId;
-
-                ownedTokenIndex++;
-            }
-
-            currentTokenId++;
-        }
-
-        return ownedTokenIds;
     }
 
     function supportsInterface(bytes4 interfaceId)
