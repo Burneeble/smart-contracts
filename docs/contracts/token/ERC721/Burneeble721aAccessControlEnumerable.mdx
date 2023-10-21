@@ -1,0 +1,71 @@
+## BurneebleERC721A Contract Documentation
+
+The `BurneebleERC721A` contract is a Solidity contract designed to manage the creation and management of NFT collections. Each NFT in this collection has specific properties, including a base URI, a preview URI, an issuance price, and issuance quantity limits. This documentation provides an overview of the contract, its primary features, and the permissions required for its use.
+
+### Overview
+
+The `BurneebleERC721A` contract allows for the creation and management of NFT collections. Each NFT has distinct attributes, such as a base URI, a preview URI, an issuance price, and limitations on the quantity that can be issued. This contract offers the flexibility for the owner to update collection settings and oversee NFT issuance.
+
+### Key Features
+
+#### Constructor
+
+- The contract is created with a constructor that requires the following parameters:
+  - `_tokenName`: The name of the NFT collection.
+  - `_tokenSymbol`: The symbol of the NFT collection.
+  - `_maxSupply`: The maximum number of NFTs that can be issued within this collection.
+  - `_mintPrice`: The price for each NFT issued, denominated in wei.
+
+#### Roles and Permissions
+
+The contract employs a role-based permission system, with two primary roles:
+
+- `DEFAULT_ADMIN_ROLE`: Assigned to the contract owner.
+- `ADMIN_ROLE`: Assigned to collection administrators.
+
+The owner (holder of `DEFAULT_ADMIN_ROLE`) has full control over the collection and can assign or revoke the administrator role to other users.
+
+### Settings Update
+
+The owner (holder of `DEFAULT_ADMIN_ROLE`) can update various collection settings:
+
+- `baseUri`: The base URI for generating NFT URIs.
+- `uriSuffix`: The suffix to append to NFT URIs.
+- `revealed`: Indicates whether the collection has been revealed.
+- `paused`: Toggles the contract's pause state.
+- `preRevealUri`: The URI used for NFTs before their revelation.
+- `mintPrice`: The issuance price of an NFT.
+- `maxMintAmountPerTrx`: The maximum number of NFTs issued per transaction.
+- `maxMintAmountPerAddress`: The maximum number of NFTs an address can issue.
+
+### Owner Management
+
+The owner (holder of `DEFAULT_ADMIN_ROLE`) can:
+
+- Transfer ownership of the contract to a new address.
+- Assign the administrator role (`ADMIN_ROLE`) to other users.
+- Revoke the administrator role from users.
+
+### NFT Issuance
+
+- Users can issue new NFTs through the `mint` function. Controls ensure that the maximum issuance limit is not exceeded and that sufficient funds are provided for payment.
+
+### Additional Functions
+
+- The contract supports interfaces, such as the `IBurneebleERC721A` interface.
+- NFT information, including URIs, can be retrieved using the `tokenURI` function.
+
+## Permissions
+
+The contract uses a role-based permission system, and permissions are assigned based on roles:
+
+- `DEFAULT_ADMIN_ROLE`: Assigned to the contract owner.
+- `ADMIN_ROLE`: Assigned to collection administrators.
+
+Specific permissions are required to perform certain actions:
+
+- `requireOwner`: Needed for actions requiring `DEFAULT_ADMIN_ROLE`, such as changing contract ownership.
+- `requireAdmin`: Needed for actions requiring `ADMIN_ROLE`, such as updating collection settings.
+- `active`: Required for actions when the contract is not paused.
+- `canMint`: Required for issuing new NFTs, ensuring issuance limits are not exceeded.
+- `enoughFunds`: Necessary for issuing new NFTs, ensuring sufficient funds for payment.

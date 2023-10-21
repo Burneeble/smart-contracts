@@ -1,34 +1,34 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity ^0.8.14;
+// SPDX-License-Identifier: MIT
+ pragma solidity ^0.8.14;
 
-// // =============================================
-// //    BurneebleERC721aAccessControlEnumerable
-// // =============================================
-// // The BurneebleERC721a contract is designed
-// //
-// // Properties:
-// // - `constructor`: 
-// // =============================================
+// =============================================
+//    BurneebleERC721aAccessControlEnumerable
+// =============================================
+// The BurneebleERC721a contract is designed
+//
+// Properties:
+// - `constructor`: 
+// =============================================
 
-// /**
-//  * @title BurneebleERC721aAccessControlEnumerable
-//  * @author Burneeble
-//  */
+/**
+ * @title BurneebleERC721aAccessControlEnumerable
+ * @author Burneeble
+ */
 
-// //  =============================================
-// //               (        )                 (
-// //    (          )\ )  ( /(             (   )\ )
-// //  ( )\     (  (()/(  )\()) (    (   ( )\ (()/(  (
-// //  )((_)    )\  /(_))((_)\  )\   )\  )((_) /(_)) )\
-// // ((_)_  _ ((_)(_))   _((_)((_) ((_)((_)_ (_))  ((_)
-// //  | _ )| | | || _ \ | \| || __|| __|| _ )| |   | __|
-// //  | _ \| |_| ||   / | .` || _| | _| | _ \| |__ | _|
-// //  |___/ \___/ |_|_\ |_|\_||___||___||___/|____||___|
-// //
-// //  If you experience issues or have questions, please reach out for support.
-// //  Website: https://burneeble.com
-// //
-// //  =============================================
+//  =============================================
+//               (        )                 (
+//    (          )\ )  ( /(             (   )\ )
+//  ( )\     (  (()/(  )\()) (    (   ( )\ (()/(  (
+//  )((_)    )\  /(_))((_)\  )\   )\  )((_) /(_)) )\
+// ((_)_  _ ((_)(_))   _((_)((_) ((_)((_)_ (_))  ((_)
+//  | _ )| | | || _ \ | \| || __|| __|| _ )| |   | __|
+//  | _ \| |_| ||   / | .` || _| | _| | _ \| |__ | _|
+//  |___/ \___/ |_|_\ |_|\_||___||___||___/|____||___|
+//
+//  If you experience issues or have questions, please reach out for support.
+//  Website: https://burneeble.com
+//
+//  =============================================
 
 import "erc721a/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
